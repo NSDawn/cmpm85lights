@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>lights</title>
+	</head>
+	<body>
+    
+  
+
+  <script type="module">
+    import * as THREE from './js/build/three.module.js'
+    import { OrbitControls } from './js/examples/jsm/controls/OrbitControls.js'
+
+
+    let wireframe = false;
+
+    //first create a "world" or "scene" to hold the data you will render to the screen (where the data is 3D geometry)      
+    const scene = new THREE.Scene();
+
+    //define a camera to look into the 3D world
+    let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+
+    //we are going to place our 3D meshes at the center of the world's coordinate system, 
+    //  so we move the camera so that it can see them 
+    camera.position.z = 5;
+
+    //tell Three.js to render our geometry using the GPU
+    const renderer = new THREE.WebGLRenderer();
+
+    //make the canvas take up the entire browser window
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    //once the renderer and camera are created, 
+    // we can define how the camera can be moved
+    const controls = new OrbitControls(camera, renderer.domElement);
+
+
+    //a 3D object consists of:
+    // some POINTS (called "geometry") that define the object
+    // a MATERIAL that defines how the faces of the geometry are rendered
+    const geometry1 = new THREE.BoxGeometry();
+    const material1 = new THREE.MeshPhongMaterial();
+
+    //you put these together by making a MESH
+    const cube = new THREE.Mesh(geometry1, material1);
+
+    //and you then add the mesh to the scene so that it gets rendered
+    scene.add(cube);
+
+
+    //we can also make some other kinds of 3D objects:
+
+    //sphere
+    const geometry2 = new THREE.SphereGeometry(0.75, 32, 32); //radius, resX, resY
+    const material2 = new THREE.MeshPhongMaterial();
+    const sphere = new THREE.Mesh(geometry2, material2);
+    sphere.position.x = -2; //move it to the left
+    scene.add(sphere);
+
+    //knot
+    const geometry3 = new THREE.TorusKnotGeometry(1.0, 0.5, 300, 65);
+    const material3 = new THREE.MeshPhongMaterial();
+    const knot = new THREE.Mesh(geometry3, material3);
+    knot.position.x = 2; //move it to the right
+    scene.add(knot);
+
+    //torus
+    const geometry4 = new THREE.TorusGeometry(0.6, .1, 32, 32);
+    const material4 = new THREE.MeshPhongMaterial();
+    const torus = new THREE.Mesh(geometry4, material4);
+    torus.position.y = 2; //move it up
+    scene.add(torus);
+
+    //torus
+    const geometry5 = new THREE.DodecahedronGeometry(.75);
+    const material5 = new THREE.MeshPhongMaterial();
+    const dodecahedron = new THREE.Mesh(geometry5, material5);
+    dodecahedron.position.y = -2; //move it down
+    scene.add(dodecahedron);
+
+
+    //setting the mesh material to "wireframe = true" can make it easier to see the faces of the geometry 
+    if (wireframe) {
+      material1.wireframe = true;
+      material2.wireframe = true;
+      material3.wireframe = true;
+      material4.wireframe = true;
+      material5.wireframe = true;
+    }
+
+    
+    const light1 = new THREE.PointLight("#ffffff");
+    let seed_r = Math.random(2); let seed_g = Math.random(2); let seed_b = Math.random(2);
+    light1.position.set( 0, 50, 0 );
+    scene.add( light1 );
+
+    const light2 = new THREE.PointLight("#ffffff");
+    let seed_r2 = Math.random(2); let seed_g2 = Math.random(2); let seed_b2 = Math.random(2);
+    light2.position.set( 50, 0, 0 );
+    scene.add( light2 );
+
+    const light3 = new THREE.PointLight( 0xff0000 );
+    light3.position.set( -50, 0, 0 );
+    //scene.add( light3 );
+
+    const white_pointlight = new THREE.PointLight( 0xffffff );
+    white_pointlight.position.set( 0, 0, 0 );
+    // scene.add( white_pointlight );
+
+    const ambientLight = new THREE.AmbientLight( 0x202020 ); // soft white light
+    //scene.add( ambientLight );
+
+    // fn that converts integers to hex strings
+    function to_hex(in_int) {
+      switch (in_int) {
+        case 0:
+          return "0";
+        case 1:
+          return "1";
+        case 2:
+          return "2";
+        case 3:
+          return "3";
+        case 4:
+          return "4";
+        case 5: 
+          return "5";
+        case 6: 
+          return "6";
+        case 7: 
+          return "7";
+        case 8: 
+          return "8";
+        case 9: 
+          return "9";
+        case 10: 
+          return "a";
+        case 11:
+          return "b";
+        case 12:
+          return "c";
+        case 13: 
+          return "d";
+        case 14:
+          return "e";
+        case 15:
+          return "f";
+        default:
+          return false;
+      }
+    }
+    // fn that converts 3 inputs into a hex color
+    function to_hex_color(in_r, in_g, in_b) {
+      return ("#" + to_hex(Math.floor(in_r/16)) + to_hex(in_r % 16) + to_hex(Math.floor(in_g/16)) + to_hex(in_g % 16) + to_hex(Math.floor(in_b/16)) + to_hex(in_b % 16))
+    }
+
+    // fn that returns values for calibarted RGB color based on time and seed
+    function bg_color(in_time, in_seed) {
+      return Math.floor(((64 * Math.cos(Math.PI*(in_time + in_seed))) + 64 + 127));
+    }
+
+
+    let light_dx = 0.1;
+
+    let time = 0;
+    const SPEED = 0.001;
+    const animate = function () {
+      time += SPEED
+      if (time > 2) {
+        time -= 2;
+      }
+
+      requestAnimationFrame(animate);
+
+      controls.update();
+
+      light1.color.set(to_hex_color(bg_color(time, seed_r), bg_color(time, seed_g), bg_color(time, seed_b)))
+      light2.color.set(to_hex_color(bg_color(time, seed_r2), bg_color(time, seed_g2), bg_color(time, seed_b2)))
+
+      rotateObject(cube, -0.01,  0.01);
+      rotateObject(sphere, 0.01, 0.01);
+      rotateObject(torus, 0.01, -0.02);
+      rotateObject(knot, -0.02, 0.01);
+      rotateObject(dodecahedron, -0.01, 0.01);
+
+      white_pointlight.position.x += light_dx;
+
+      if (white_pointlight.position.x > 10) {
+        light_dx = -0.1;
+      } else if (white_pointlight.position.x < -10) {
+        light_dx = 0.1; 
+      }
+
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    function rotateObject(o, dx, dy) {
+      o.rotation.x += dx;
+      o.rotation.y += dy;
+    }
+
+  </script>
+  </body>
+  
+  </html>
